@@ -1,0 +1,49 @@
+{
+  "name": "UserSettings",
+  "type": "object",
+  "properties": {
+    "hotkey": {
+      "type": "string",
+      "default": "RightAlt",
+      "description": "Key to hold for recording"
+    },
+    "language": {
+      "type": "string",
+      "default": "auto",
+      "description": "Preferred language for transcription (auto = auto-detect)"
+    },
+    "stt_provider": {
+      "type": "string",
+      "enum": ["whisper", "gemini"],
+      "default": "whisper",
+      "description": "Preferred STT API provider"
+    },
+    "api_key_whisper": {
+      "type": "string",
+      "description": "OpenAI API key for Whisper"
+    },
+    "api_key_gemini": {
+      "type": "string",
+      "description": "Google Gemini API key"
+    },
+    "default_destination": {
+      "type": "string",
+      "enum": ["clipboard", "cursor"],
+      "default": "cursor",
+      "description": "Default output destination"
+    },
+    "formatting_mode": {
+      "type": "string",
+      "enum": ["raw", "clean", "smart"],
+      "default": "smart",
+      "description": "Level of AI post-processing on transcripts"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": true,
+    "read": { "created_by": "{{user.email}}" },
+    "update": { "created_by": "{{user.email}}" },
+    "delete": { "created_by": "{{user.email}}" }
+  }
+}

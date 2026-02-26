@@ -1,0 +1,50 @@
+{
+  "name": "Transcription",
+  "type": "object",
+  "properties": {
+    "raw_text": {
+      "type": "string",
+      "description": "Raw transcript from STT before formatting"
+    },
+    "formatted_text": {
+      "type": "string",
+      "description": "Text after smart formatting/cleanup"
+    },
+    "language": {
+      "type": "string",
+      "description": "Detected language code (e.g. en, he)"
+    },
+    "duration_ms": {
+      "type": "number",
+      "description": "Duration of audio recording in milliseconds"
+    },
+    "word_count": {
+      "type": "number",
+      "description": "Number of words in formatted text"
+    },
+    "destination": {
+      "type": "string",
+      "enum": ["clipboard", "cursor"],
+      "default": "clipboard",
+      "description": "Where the text was pasted"
+    },
+    "stt_provider": {
+      "type": "string",
+      "enum": ["whisper", "gemini"],
+      "description": "Which STT provider was used"
+    },
+    "context_type": {
+      "type": "string",
+      "enum": ["general", "code", "email", "chat", "command"],
+      "default": "general",
+      "description": "Detected context type for smart formatting"
+    }
+  },
+  "required": ["raw_text", "formatted_text"],
+  "rls": {
+    "create": true,
+    "read": { "created_by": "{{user.email}}" },
+    "update": { "created_by": "{{user.email}}" },
+    "delete": { "created_by": "{{user.email}}" }
+  }
+}
