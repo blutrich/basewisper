@@ -20,30 +20,32 @@ async function transcribeWhisper(audioBuffer) {
   const tmpPath = path.join(os.tmpdir(), `wisperflow-${Date.now()}.wav`);
   fs.writeFileSync(tmpPath, audioBuffer);
 
-  const formData = new FormData();
-  formData.append("file", new Blob([fs.readFileSync(tmpPath)]), "audio.wav");
-  formData.append("model", "whisper-1");
+  try {
+    const formData = new FormData();
+    formData.append("file", new Blob([fs.readFileSync(tmpPath)]), "audio.wav");
+    formData.append("model", "whisper-1");
 
-  const language = config.get("language");
-  if (language !== "auto") {
-    formData.append("language", language);
+    const language = config.get("language");
+    if (language !== "auto") {
+      formData.append("language", language);
+    }
+
+    const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Whisper API: ${err}`);
+    }
+
+    const result = await response.json();
+    return result.text;
+  } finally {
+    try { fs.unlinkSync(tmpPath); } catch {}
   }
-
-  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: formData,
-  });
-
-  fs.unlinkSync(tmpPath);
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Whisper API: ${err}`);
-  }
-
-  const result = await response.json();
-  return result.text;
 }
 
 async function transcribeGemini(audioBuffer) {

@@ -52,9 +52,14 @@ Deno.serve(async (req) => {
       transcript = result.text;
     } else if (provider === "gemini") {
       const audioBytes = await audioFile.arrayBuffer();
-      const base64Audio = btoa(
-        String.fromCharCode(...new Uint8Array(audioBytes))
-      );
+      const uint8Array = new Uint8Array(audioBytes);
+      let binary = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
+      }
+      const base64Audio = btoa(binary);
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -92,6 +97,13 @@ Deno.serve(async (req) => {
       const result = await response.json();
       transcript =
         result.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    }
+
+    if (!transcript) {
+      return new Response(
+        JSON.stringify({ error: "Transcription returned empty result" }),
+        { status: 422, headers: { "Content-Type": "application/json" } }
+      );
     }
 
     return Response.json({ transcript, provider });

@@ -11,6 +11,7 @@ export default function HistoryPage() {
   const [transcriptions, setTranscriptions] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadTranscriptions();
@@ -18,9 +19,16 @@ export default function HistoryPage() {
 
   async function loadTranscriptions() {
     setLoading(true);
-    const data = await Transcription.list("-created_date", 50);
-    setTranscriptions(data);
-    setLoading(false);
+    setError(null);
+    try {
+      const data = await Transcription.list("-created_date", 50);
+      setTranscriptions(data);
+    } catch (err) {
+      setError("Failed to load transcriptions. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const filtered = transcriptions.filter(
@@ -30,12 +38,26 @@ export default function HistoryPage() {
   );
 
   async function copyText(text) {
-    await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
   }
 
   async function deleteTranscription(id) {
-    await Transcription.delete(id);
-    setTranscriptions((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await Transcription.delete(id);
+      setTranscriptions((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      setError("Failed to delete transcription. Please try again.");
+      console.error(err);
+    }
   }
 
   return (
@@ -50,6 +72,7 @@ export default function HistoryPage() {
           className="pl-9"
         />
       </div>
+      {error && <div className="text-red-500 text-center py-8">{error}</div>}
       {loading ? (
         <p className="text-muted-foreground">Loading...</p>
       ) : filtered.length === 0 ? (

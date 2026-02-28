@@ -8,12 +8,21 @@ const Transcription = base44.entities.Transcription;
 export default function AnalyticsPage() {
   const [transcriptions, setTranscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function load() {
-      const data = await Transcription.list("-created_date", 500);
-      setTranscriptions(data);
-      setLoading(false);
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await Transcription.list("-created_date", 500);
+        setTranscriptions(data);
+      } catch (err) {
+        setError("Failed to load analytics. Please try again.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
@@ -58,6 +67,7 @@ export default function AnalyticsPage() {
   }, [transcriptions]);
 
   if (loading) return <p className="text-muted-foreground">Loading analytics...</p>;
+  if (error) return <div className="text-red-500 text-center py-8">{error}</div>;
   if (!stats) return <p className="text-muted-foreground">No data yet. Start dictating!</p>;
 
   return (

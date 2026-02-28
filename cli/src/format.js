@@ -34,6 +34,7 @@ async function formatWithOpenAI(rawText, mode) {
   });
 
   if (!response.ok) {
+    console.error(`[wisperflow] Format API error (${response.status}), using raw text`);
     return { formatted_text: rawText, context_type: "general" };
   }
 
@@ -75,6 +76,7 @@ async function formatWithGemini(rawText, mode) {
   );
 
   if (!response.ok) {
+    console.error(`[wisperflow] Format API error (${response.status}), using raw text`);
     return { formatted_text: rawText, context_type: "general" };
   }
 

@@ -29,36 +29,54 @@ export default function SettingsPage() {
   const [settingsId, setSettingsId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadSettings();
   }, []);
 
   async function loadSettings() {
-    const data = await UserSettings.list("-created_date", 1);
-    if (data.length > 0) {
-      setSettings({ ...DEFAULTS, ...data[0] });
-      setSettingsId(data[0].id);
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await UserSettings.list("-created_date", 1);
+      if (data.length > 0) {
+        setSettings({ ...DEFAULTS, ...data[0] });
+        setSettingsId(data[0].id);
+      }
+    } catch (err) {
+      setError("Failed to load settings. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   }
 
   async function saveSettings() {
     setSaving(true);
-    const payload = { ...settings };
-    delete payload.id;
-    delete payload.created_date;
-    delete payload.updated_date;
-    delete payload.created_by;
+    setError(null);
+    try {
+      const payload = { ...settings };
+      delete payload.id;
+      delete payload.created_date;
+      delete payload.updated_date;
+      delete payload.created_by;
 
-    if (settingsId) {
-      await UserSettings.update(settingsId, payload);
-    } else {
-      const created = await UserSettings.create(payload);
-      setSettingsId(created.id);
+      if (settingsId) {
+        await UserSettings.update(settingsId, payload);
+      } else {
+        const created = await UserSettings.create(payload);
+        setSettingsId(created.id);
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError("Failed to save settings. Please try again.");
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
   }
 
   function update(field, value) {
@@ -68,6 +86,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-lg">
       <h1 className="text-2xl font-bold">Settings</h1>
+      {error && <div className="text-red-500 text-center py-8">{error}</div>}
 
       <div className="space-y-4">
         <div className="space-y-2">

@@ -27,5 +27,7 @@ export function stopRecording() {
     recording.stop();
     recording = null;
   }
-  return Buffer.concat(audioChunks);
+  const buffer = Buffer.concat(audioChunks);
+  audioChunks = [];
+  return buffer;
 }
